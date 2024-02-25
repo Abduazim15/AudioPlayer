@@ -1,3 +1,4 @@
+import 'package:abookplayer/AudioService.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:neumorphic_ui/neumorphic_ui.dart';
@@ -5,7 +6,6 @@ import '../models/audio_model.dart';
 
 class PlayerPage extends StatefulWidget {
   const PlayerPage({super.key, required this.model});
-
   final AudioBookModel model;
 
   @override
@@ -14,10 +14,20 @@ class PlayerPage extends StatefulWidget {
 
 class _PlayerPageState extends State<PlayerPage> {
   final AudioBookModel model;
-
-
+  bool isPlaying = true;
+  final AudioService service = AudioService();
   _PlayerPageState({required this.model});
-
+  @override
+  void initState() {
+    service.setAudio(model.audioPath);
+    service.play();
+    super.initState();
+  }
+  @override
+  void dispose() {
+    service.stop();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     Color adoptedColor = Theme.of(context).colorScheme.background;
@@ -71,13 +81,13 @@ class _PlayerPageState extends State<PlayerPage> {
               ),
             ),
             const SizedBox(height: 30),
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('0:00'),
                 Icon(Icons.shuffle),
                 Icon(Icons.repeat),
-                Text('3:56'),
+                Text(service.duration.toString()),
               ],
             ),
             SliderTheme(
@@ -108,11 +118,17 @@ class _PlayerPageState extends State<PlayerPage> {
               Expanded(
                 flex: 2,
                 child: GestureDetector(
-                  onTap: (){},
+                  onTap: (){
+                    setState(() {
+                      isPlaying ? service.stop() : service.play();
+                      isPlaying = !isPlaying;
+                    });
+
+                  },
                   child: Neumorphic(
                     padding: const EdgeInsets.all(10),
                     style: NeumorphicStyle(color: adoptedColor),
-                    child: const Icon(Icons.play_arrow, size: 30),
+                    child: isPlaying ? const Icon(Icons.pause, size: 30) : const Icon(Icons.play_arrow, size: 30),
                   ),
                 ),
               ),
